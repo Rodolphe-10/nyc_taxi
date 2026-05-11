@@ -1,0 +1,13 @@
+data/raw/
+data/processed/
+data/features/
+mlruns/
+__pycache__/
+*.pyc
+.venv/
+.env
+*.egg-info/
+.pytest_cache/
+.coverage
+dist/
+*.lprof

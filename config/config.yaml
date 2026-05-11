@@ -1,0 +1,28 @@
+project:
+  name: "NYC Taxi Tip Predictor"
+  version: "1.0.0"
+  seed: 42
+
+paths:
+  raw_data: "data/raw"
+  processed_data: "data/processed"
+  features_data: "data/features"
+  mlruns: "mlruns"
+
+data:
+  year: 2023
+  base_url: "https://d37ci6vzurychx.cloudfront.net/trip-data"
+  filename_pattern: "yellow_tripdata_{year}-{month:02d}.parquet"
+
+model:
+  target: "tip_pct"
+  learning_rate: 0.05
+  n_estimators: 500
+  max_depth: 6
+  objective: "regression"
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  model_name: "TipPredictor"
+  model_stage: "Production"

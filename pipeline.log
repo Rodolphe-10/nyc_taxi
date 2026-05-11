@@ -1,0 +1,10 @@
+2026-05-11 15:29:57,413 | INFO | Pipeline démarré — 3 étapes
+2026-05-11 15:29:57,460 | INFO | [AFTER_RUN] data_cleaner | in=(100000, 10) out=(95600, 11) | 41.8ms
+2026-05-11 15:29:57,515 | INFO | [AFTER_RUN] feature_creator | in=(95600, 11) out=(95600, 16) | 51.8ms
+2026-05-11 15:29:57,573 | INFO | [AFTER_RUN] zone_encoder | in=(95600, 16) out=(95600, 16) | 55.5ms
+2026-05-11 15:29:57,576 | INFO | Pipeline terminé en 163.3ms
+2026-05-11 15:35:43,122 | INFO | Pipeline démarré — 3 étapes
+2026-05-11 15:35:43,167 | INFO | [AFTER_RUN] data_cleaner | in=(100000, 10) out=(95600, 11) | 40.0ms
+2026-05-11 15:35:43,225 | INFO | [AFTER_RUN] feature_creator | in=(95600, 11) out=(95600, 16) | 54.0ms
+2026-05-11 15:35:43,282 | INFO | [AFTER_RUN] zone_encoder | in=(95600, 16) out=(95600, 16) | 53.0ms
+2026-05-11 15:35:43,285 | INFO | Pipeline terminé en 162.0ms
