@@ -31,6 +31,15 @@ except ImportError:
     async_tqdm = None  # type: ignore[misc, assignment]
     TQDM_ASYNC = False
 
+# Exécution directe : « python async_io.py » depuis src/optim/ — la racine du TP est tp_taxi/.
+_ROOT = Path(__file__).resolve().parents[2]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+# Chemins par défaut absolus : indépendants du cwd (évite data/raw sous src/optim/).
+DEFAULT_RAW_DIR = str(_ROOT / "data" / "raw")
+DEFAULT_BENCHMARK_RAW_DIR = str(_ROOT / "data" / "raw_benchmark_test")
+
 from src.core.config import Config
 from src.core.decorators import retry
 
@@ -67,7 +76,7 @@ def _requests_get_stream(url: str, timeout: int = 60):
     return requests.get(url, stream=True, timeout=timeout)
 
 
-def download_month_sync(year: int, month: int, dest_dir: str = "data/raw") -> Dict:
+def download_month_sync(year: int, month: int, dest_dir: str = DEFAULT_RAW_DIR) -> Dict:
     """Télécharge un mois avec requests (référence synchrone)."""
     path = get_dest_path(year, month, dest_dir)
     if file_already_exists(path):
@@ -121,7 +130,7 @@ async def download_month_async(
     semaphore: asyncio.Semaphore,
     year: int,
     month: int,
-    dest_dir: str = "data/raw",
+    dest_dir: str = DEFAULT_RAW_DIR,
 ) -> Dict:
     """Télécharge un mois en asyncio (aiohttp), concurrence bornée par ``semaphore``."""
     path = get_dest_path(year, month, dest_dir)
@@ -177,7 +186,7 @@ async def download_month_async(
 
 async def download_year_async(
     year: int = 2023,
-    dest_dir: str = "data/raw",
+    dest_dir: str = DEFAULT_RAW_DIR,
     months: Optional[List[int]] = None,
     concurrency: int = 4,
 ) -> List[Dict]:
@@ -228,7 +237,7 @@ async def download_year_async(
 
 def download_year_sync(
     year: int = 2023,
-    dest_dir: str = "data/raw",
+    dest_dir: str = DEFAULT_RAW_DIR,
     months: Optional[List[int]] = None,
 ) -> List[Dict]:
     """Télécharge les mois un par un (référence pour benchmark)."""
@@ -253,7 +262,7 @@ def download_year_sync(
 def benchmark_async_vs_sync(
     year: int = 2023,
     months: Optional[List[int]] = None,
-    dest_dir: str = "data/raw",
+    dest_dir: str = DEFAULT_RAW_DIR,
     concurrency: int = 4,
 ) -> Dict:
     """Compare le temps total synchrone vs asynchrone."""
@@ -264,7 +273,7 @@ def benchmark_async_vs_sync(
     ]
     if len(existing) == len(months):
         print("[INFO] Tous les fichiers sont déjà téléchargés.")
-        print("[INFO] Supprimez data/raw/*.parquet pour relancer le benchmark.")
+        print(f"[INFO] Supprimez les .parquet dans {dest_dir!r} pour relancer le benchmark.")
         return {"all_skipped": True, "existing_months": existing}
 
     print("\n[BENCHMARK] Téléchargement SYNCHRONE...")
@@ -307,6 +316,7 @@ def benchmark_async_vs_sync(
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
+    print(f"[INFO] Ecriture des fichiers sous : {DEFAULT_RAW_DIR}")
     print(f"[INFO] Config raw_data_path = {Config().raw_data_path}")
     print(f"[INFO] Miroir trip-data (tag) = {FILESET_TAG}")
     print(f"[INFO] tqdm.asyncio disponible = {TQDM_ASYNC} | async_tqdm = {async_tqdm!r}")
@@ -315,7 +325,7 @@ if __name__ == "__main__":
     results = asyncio.run(
         download_year_async(
             year=2023,
-            dest_dir="data/raw",
+            dest_dir=DEFAULT_RAW_DIR,
             months=[1],
             concurrency=1,
         )
@@ -337,7 +347,7 @@ if __name__ == "__main__":
         asyncio.run(
             download_year_async(
                 year=2023,
-                dest_dir="data/raw",
+                dest_dir=DEFAULT_RAW_DIR,
                 months=list(range(1, 13)),
                 concurrency=4,
             )
@@ -348,6 +358,6 @@ if __name__ == "__main__":
         benchmark_async_vs_sync(
             year=2023,
             months=[1, 2],
-            dest_dir="data/raw_benchmark_test",
+            dest_dir=DEFAULT_BENCHMARK_RAW_DIR,
             concurrency=2,
         )

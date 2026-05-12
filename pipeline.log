@@ -8,3 +8,18 @@
 2026-05-11 15:35:43,225 | INFO | [AFTER_RUN] feature_creator | in=(95600, 11) out=(95600, 16) | 54.0ms
 2026-05-11 15:35:43,282 | INFO | [AFTER_RUN] zone_encoder | in=(95600, 16) out=(95600, 16) | 53.0ms
 2026-05-11 15:35:43,285 | INFO | Pipeline terminé en 162.0ms
+2026-05-12 03:26:13,553 | INFO | Pipeline démarré — 3 étapes
+2026-05-12 03:26:13,557 | INFO | [AFTER_RUN] enrich | in=(10000, 10) out=(10000, 10) | 0.0ms
+2026-05-12 03:26:13,584 | INFO | [AFTER_RUN] filter | in=(10000, 10) out=(9937, 10) | 25.0ms
+2026-05-12 03:26:13,590 | INFO | [AFTER_RUN] finalize | in=(9937, 10) out=(9937, 10) | 0.0ms
+2026-05-12 03:26:13,592 | INFO | Pipeline terminé en 36.4ms
+2026-05-12 03:55:27,800 | INFO | Pipeline démarré — 3 étapes
+2026-05-12 03:55:27,803 | INFO | [AFTER_RUN] enrich | in=(10000, 10) out=(10000, 10) | 0.0ms
+2026-05-12 03:55:27,812 | INFO | [AFTER_RUN] filter | in=(10000, 10) out=(9937, 10) | 7.0ms
+2026-05-12 03:55:27,816 | INFO | [AFTER_RUN] finalize | in=(9937, 10) out=(9937, 10) | 0.0ms
+2026-05-12 03:55:27,817 | INFO | Pipeline terminé en 15.9ms
+2026-05-12 03:55:40,979 | INFO | Pipeline démarré — 3 étapes
+2026-05-12 03:55:40,983 | INFO | [AFTER_RUN] enrich | in=(45000, 10) out=(45000, 10) | 0.0ms
+2026-05-12 03:55:40,999 | INFO | [AFTER_RUN] filter | in=(45000, 10) out=(44738, 10) | 9.0ms
+2026-05-12 03:55:41,010 | INFO | [AFTER_RUN] finalize | in=(44738, 10) out=(44738, 10) | 0.0ms
+2026-05-12 03:55:41,014 | INFO | Pipeline terminé en 34.9ms
