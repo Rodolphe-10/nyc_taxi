@@ -1,6 +1,9 @@
-data/raw/
-data/processed/
-data/features/
+data/*
+!data/*.dvc
+!data/.gitignore
+!data/processed/
+data/processed/**
+!data/processed/.gitignore
 mlruns/
 __pycache__/
 *.pyc
@@ -9,5 +12,9 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .coverage
+htmlcov/
+coverage.xml
+*.pkl
 dist/
 *.lprof
+tests/data/processed/

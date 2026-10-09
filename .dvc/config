@@ -1,0 +1,5 @@
+[core]
+    remote = local
+    analytics = false
+['remote "local"']
+    url = C:/VENV/dvc-remote/nyc_taxi
