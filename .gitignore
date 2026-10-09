@@ -1,9 +1,7 @@
-data/*
-!data/*.dvc
-!data/.gitignore
-!data/processed/
-data/processed/**
-!data/processed/.gitignore
+data/raw/
+data/processed/
+data/features/
+data/raw_test_invalid/
 mlruns/
 __pycache__/
 *.pyc
