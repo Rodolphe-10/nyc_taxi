@@ -131,6 +131,7 @@ async def download_month_async(
     year: int,
     month: int,
     dest_dir: str = DEFAULT_RAW_DIR,
+    timeout_s: int = 300,
 ) -> Dict:
     """Télécharge un mois en asyncio (aiohttp), concurrence bornée par ``semaphore``."""
     path = get_dest_path(year, month, dest_dir)
@@ -153,7 +154,9 @@ async def download_month_async(
     async with semaphore:
         try:
             t0 = time.perf_counter()
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=300)) as resp:
+            async with session.get(
+                url, timeout=aiohttp.ClientTimeout(total=timeout_s)
+            ) as resp:
                 resp.raise_for_status()
                 with open(path, "wb") as f:
                     async for chunk in resp.content.iter_chunked(CHUNK_SIZE):
@@ -181,7 +184,17 @@ async def download_month_async(
                 "success": True,
             }
         except Exception as e:  # pragma: no cover
-            return {"month": month, "success": False, "error": str(e), "skipped": False}
+            if path.exists():
+                try:
+                    path.unlink()
+                except OSError:
+                    logger.warning("Fichier incomplet non supprimé : %s", path)
+            return {
+                "month": month,
+                "success": False,
+                "error": f"{type(e).__name__}: {e}",
+                "skipped": False,
+            }
 
 
 async def download_year_async(
@@ -189,6 +202,7 @@ async def download_year_async(
     dest_dir: str = DEFAULT_RAW_DIR,
     months: Optional[List[int]] = None,
     concurrency: int = 4,
+    timeout_s: int = 300,
 ) -> List[Dict]:
     """Lance tous les téléchargements en parallèle (asyncio.gather)."""
     months = months or list(range(1, 13))
@@ -201,7 +215,10 @@ async def download_year_async(
     connector = aiohttp.TCPConnector(limit=concurrency)
     async with aiohttp.ClientSession(connector=connector) as session:
         tasks = [
-            download_month_async(session, semaphore, year, m, dest_dir) for m in months
+            download_month_async(
+                session, semaphore, year, m, dest_dir, timeout_s=timeout_s
+            )
+            for m in months
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 

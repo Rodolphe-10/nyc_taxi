@@ -1,0 +1,35 @@
+{
+  "tool": "scripts/load_test.py (urllib ; locust n'est pas installé)",
+  "server": "uvicorn src.api.main:app --host 127.0.0.1 --port 8000",
+  "model_version": "1",
+  "target_100_rps": {
+    "url": "http://127.0.0.1:8000/predict",
+    "requested_rps": 100,
+    "seconds": 5.0,
+    "requests": 500,
+    "elapsed_s": 36.09452160005458,
+    "achieved_rps": 13.852517718346597,
+    "latency_p50_s": 2.7800377999665216,
+    "latency_p95_s": 3.399596100091003,
+    "latency_p99_s": 3.8297629000153393,
+    "statuses": {
+      "200": 500
+    },
+    "command": "python scripts/load_test.py --url http://127.0.0.1:8000/predict --rps 100 --seconds 5.0"
+  },
+  "unsaturated_10_rps": {
+    "url": "http://127.0.0.1:8000/predict",
+    "requested_rps": 10,
+    "seconds": 3.0,
+    "requests": 30,
+    "elapsed_s": 2.9810308000305668,
+    "achieved_rps": 10.06363302240701,
+    "latency_p50_s": 0.07610309997107834,
+    "latency_p95_s": 0.08603650005534291,
+    "latency_p99_s": 0.08811849995981902,
+    "statuses": {
+      "200": 30
+    },
+    "command": "python scripts/load_test.py --url http://127.0.0.1:8000/predict --rps 10 --seconds 3.0"
+  }
+}

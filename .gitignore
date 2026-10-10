@@ -16,3 +16,4 @@ coverage.xml
 dist/
 *.lprof
 tests/data/processed/
+deploy/wheels/

@@ -47,19 +47,30 @@ def io_bound_task(path: str) -> Dict:
 
 # Worker module-level : requis sur Windows pour que ProcessPool puisse pickler la fonction.
 def process_one_month(args: tuple) -> Dict:
-    """Traite un mois (chargement/génération, features, optimisation, sauvegarde)."""
-    if len(args) == 4:
-        month, n_rows, seed, persist_outputs = args
+    """Traite un mois (chargement ou génération, features, optimisation, sauvegarde).
+
+    Tuple accepté :
+    ``(month, n_rows, seed)``,
+    ``(month, n_rows, seed, persist_outputs)`` ou
+    ``(month, n_rows, seed, persist_outputs, use_real)``.
+
+    ``n_rows`` est toujours respecté. Le Parquet de ``data/raw`` n'est lu que si
+    ``use_real`` est vrai et que le fichier existe ; sinon un jeu simulé de
+    ``n_rows`` lignes est généré.
+    """
+    if len(args) >= 4:
+        month, n_rows, seed, persist_outputs = args[:4]
     else:
-        month, n_rows, seed = args
+        month, n_rows, seed = args[:3]
         persist_outputs = True
+    use_real = bool(args[4]) if len(args) >= 5 else False
     try:
         t0 = time.perf_counter()
         raw_path = f"data/raw/yellow_tripdata_2023-{month:02d}.parquet"
         output_path = f"data/processed/yellow_2023_{month:02d}_processed.parquet"
         os.makedirs("data/processed", exist_ok=True)
 
-        if os.path.exists(raw_path):
+        if use_real and os.path.exists(raw_path):
             df = pd.read_parquet(raw_path)
         else:
             df = generate_taxi_df(n_rows=n_rows, seed=seed)
@@ -88,13 +99,18 @@ def process_one_month(args: tuple) -> Dict:
 
 # Référence séquentielle pour mesurer le gain du parallélisme.
 def process_months_sequential(
-    months: List[int], n_rows: int = 50_000, persist_outputs: bool = True
+    months: List[int],
+    n_rows: int = 50_000,
+    persist_outputs: bool = True,
+    use_real: bool = False,
 ) -> tuple:
     """Exécute les mois l'un après l'autre dans un seul processus."""
     t0 = time.perf_counter()
     results = []
     for month in months:
-        result = process_one_month((month, n_rows, month * 42, persist_outputs))
+        result = process_one_month(
+            (month, n_rows, month * 42, persist_outputs, use_real)
+        )
         results.append(result)
         print(f"[SEQ] Mois {month}/12 traité")
     elapsed_total_s = time.perf_counter() - t0
@@ -107,6 +123,7 @@ def process_months_parallel(
     n_rows: int = 50_000,
     max_workers: int = None,
     persist_outputs: bool = True,
+    use_real: bool = False,
 ) -> tuple:
     """Distribue les mois sur plusieurs processus CPU."""
     max_workers = max_workers or os.cpu_count()
@@ -116,7 +133,10 @@ def process_months_parallel(
     results = []
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = [
-            executor.submit(process_one_month, (month, n_rows, month * 42, persist_outputs))
+            executor.submit(
+                process_one_month,
+                (month, n_rows, month * 42, persist_outputs, use_real),
+            )
             for month in months
         ]
         for fut in as_completed(futures):
@@ -138,6 +158,7 @@ def speedup_benchmark(
     months: List[int] = None,
     n_rows: int = 20_000,
     worker_counts: List[int] = None,
+    use_real: bool = False,
 ) -> pd.DataFrame:
     """Calcule speedup/efficacité selon le nombre de workers."""
     months = months or list(range(1, 13))
@@ -147,7 +168,9 @@ def speedup_benchmark(
 
     records = []
     for n_workers in worker_counts:
-        _, elapsed_s = process_months_parallel(months, n_rows, n_workers)
+        _, elapsed_s = process_months_parallel(
+            months, n_rows, n_workers, use_real=use_real
+        )
         records.append({"n_workers": n_workers, "elapsed_s": elapsed_s})
 
     df = pd.DataFrame(records)
@@ -337,11 +360,11 @@ if __name__ == "__main__":
     N_ROWS = 20_000
 
     print("=== TRAITEMENT SÉQUENTIEL ===")
-    _, t_seq = process_months_sequential(MONTHS, N_ROWS)
+    _, t_seq = process_months_sequential(MONTHS, N_ROWS, use_real=True)
     print(f"Temps séquentiel : {t_seq:.2f}s")
 
     print("\n=== TRAITEMENT PARALLÈLE ===")
-    _, t_par = process_months_parallel(MONTHS, N_ROWS)
+    _, t_par = process_months_parallel(MONTHS, N_ROWS, use_real=True)
     print(f"Temps parallèle  : {t_par:.2f}s")
     print(f"Speedup global   : {t_seq / t_par:.2f}x")
 
@@ -350,6 +373,7 @@ if __name__ == "__main__":
         months=MONTHS,
         n_rows=N_ROWS,
         worker_counts=[1, 2, 4, os.cpu_count()],
+        use_real=True,
     )
     print(df_speedup.to_string())
 

@@ -7,7 +7,6 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import KFold
 
 from src.core.context import Timer
 from src.core.metaclasses import BasePipelineStep
@@ -137,6 +136,8 @@ class CrossFittedTargetEncoder(BasePipelineStep):
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
         """Cross-fitted target encoding en K folds (sans leakage intra-ligne)."""
+        from sklearn.model_selection import KFold
+
         out = df.copy()
         kf = KFold(
             n_splits=self.n_splits,

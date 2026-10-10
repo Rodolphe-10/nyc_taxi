@@ -6,10 +6,15 @@ persiste le résultat dans data/processed/.
 """
 
 import logging
-import os
+import sys
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
 from src.core.context import Timer
 from src.core.metaclasses import BasePipelineStep
@@ -72,15 +77,16 @@ class ZoneEncoder(BasePipelineStep):
 
 def main():
     """Point d'entrée du script d'intégration Partie 1."""
-    raw_path = "data/raw/yellow_tripdata_2023-01.parquet"
-    processed_path = "data/processed/yellow_2023_01_processed.parquet"
+    raw_path = _ROOT / "data" / "raw" / "yellow_tripdata_2023-01.parquet"
+    processed_dir = _ROOT / "data" / "processed"
+    processed_path = processed_dir / "yellow_2023_01_processed.parquet"
 
-    os.makedirs("data/processed", exist_ok=True)
+    processed_dir.mkdir(parents=True, exist_ok=True)
 
-    if os.path.exists(raw_path):
+    if raw_path.is_file():
         print(f"[INFO] Chargement via Factory : {raw_path}")
         with Timer("Chargement Factory", unit="s") as t:
-            loader = LoaderFactory.create(raw_path)
+            loader = LoaderFactory.create(str(raw_path))
             df = loader.run()
         print(f"[OK] {len(df):,} lignes chargées en {t.elapsed:.2f}s")
     else:
@@ -126,8 +132,9 @@ def main():
     result.to_parquet(processed_path, index=False)
     print(f"\n[OK] Résultat sauvegardé : {processed_path}")
 
-    pipeline.to_pickle("data/processed/pipeline_part1.pkl")
-    print("[OK] Pipeline sérialisé : data/processed/pipeline_part1.pkl")
+    pickle_path = processed_dir / "pipeline_part1.pkl"
+    pipeline.to_pickle(str(pickle_path))
+    print(f"[OK] Pipeline sérialisé : {pickle_path}")
 
     print("\n✅ PARTIE 1 COMPLÈTE — Tous les patterns implémentés et testés")
 

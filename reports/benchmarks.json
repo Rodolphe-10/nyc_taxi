@@ -1,0 +1,56 @@
+{
+  "measured_at": "2026-10-10T21:54:37Z",
+  "command": "python scripts/measure_benchmarks.py",
+  "python": "3.10.11",
+  "vectorization": {
+    "n_rows": 20000,
+    "n_runs_compare": 3,
+    "naive_mean_ms": 4999.415733333687,
+    "vectorized_mean_ms": 12.05620000049142,
+    "speedup": 414.67591223850854,
+    "note": "compare_functions relance chaque impl\u00e9mentation 3 fois. Le jeu est synth\u00e9tique (generate_taxi_df), pas le mois de janvier."
+  },
+  "dtypes_synthetic": {
+    "n_rows": 100000,
+    "bytes_before": 6400128,
+    "bytes_after": 3800128,
+    "gain_ratio": 0.40624187516249677
+  },
+  "dtypes_january_head": {
+    "n_rows": 200000,
+    "bytes_before": 40400128,
+    "bytes_after": 13000352,
+    "gain_ratio": 0.6782101284431574,
+    "source": "yellow_tripdata_2023-01.parquet",
+    "note": "head(200000) apr\u00e8s lecture du parquet de janvier, pas les 12 mois."
+  },
+  "haversine": {
+    "t_python_extrap": 4.964520000066841,
+    "t_python_sub": 0.04964520000066841,
+    "t_numpy": 0.16587390000131563,
+    "t_numba": 0.08282750000034866,
+    "t_numba_parallel": 0.04370010000093316,
+    "speedup_numpy": 29.9294825769905,
+    "speedup_numba": 59.93806404933075,
+    "speedup_numba_parallel": 113.60431669403113,
+    "n_points": 1000000,
+    "python_sample_points": 10000,
+    "note": "Le temps Python est extrapol\u00e9 : 10 000 appels mesur\u00e9s, multipli\u00e9s par n_points / 10 000. Cible de l'\u00e9nonc\u00e9 : 10^7 paires."
+  },
+  "gil_cpu": {
+    "t_seq": 0.42486769999959506,
+    "t_threading": 0.4238638999995601,
+    "t_multiprocessing": 1.6519721999993635,
+    "speedup_threading": 1.0023682130043063,
+    "speedup_processes": 0.2571881657571228,
+    "gil_overhead_pct": -0.23626178220559668,
+    "n_workers": 4
+  },
+  "gil_io": {
+    "t_seq": 3.074675699999716,
+    "t_threading": 2.14564799999971,
+    "speedup_threading": 1.432982343795502,
+    "n_files": 4,
+    "note": "n_files=4. Seul yellow_tripdata_2023-01.parquet existe : les autres chemins tombent dans le sleep de 0,1 s de io_bound_task."
+  }
+}

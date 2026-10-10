@@ -1,0 +1,10 @@
+{
+  "model_name": "TipPredictor",
+  "version": "1",
+  "stage": "Production",
+  "model_uri": "models:/TipPredictor/Production",
+  "source_run_id": "09ac8b9ff161415bb8f1042ec8287421",
+  "run_name": "grid_001",
+  "rmse_val": 0.08568922212007421,
+  "n_train": "72735"
+}

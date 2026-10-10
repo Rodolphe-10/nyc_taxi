@@ -7,7 +7,9 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 import logging
+import os
 import sys
 import time
 from pathlib import Path
@@ -25,6 +27,14 @@ import plotly.graph_objects as go
 
 # Réduit le bruit des loggers pendant les démos Streamlit
 logging.getLogger().setLevel(logging.WARNING)
+
+
+def _read_report(name: str) -> dict | None:
+    """Charge un JSON de ``reports/`` s'il existe."""
+    path = ROOT / "reports" / name
+    if not path.is_file():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _plotly_theme(fig: go.Figure) -> go.Figure:
@@ -352,6 +362,7 @@ def _sidebar() -> str:
             "🏗️  Partie 1 — POO & Patterns",
             "⚡  Partie 2 — Optimisation",
             "🔬  Partie 3 — Feature Engineering",
+            "🚀  Partie 4 — MLOps & API",
             "📊  Résultats & Métriques",
         ],
         label_visibility="collapsed",
@@ -361,7 +372,7 @@ def _sidebar() -> str:
     st.sidebar.caption("👨‍🏫 Enseignant : M. Evaris Fomekong")
     st.sidebar.caption("🏫 École Supérieure Française KeYce")
     st.sidebar.caption("🐍 Python 3.10+")
-    st.sidebar.caption("✅ 96 tests passés")
+    st.sidebar.caption("✅ 253 tests collectés")
     return page
 
 
@@ -387,13 +398,13 @@ leur stratégie de service.
         st.info(
             "📁 12 fichiers Parquet 2023\n\n"
             "🔢 ~40 millions de lignes\n\n"
-            "✅ 96 tests unitaires\n\n"
+            "✅ 253 tests collectés\n\n"
             "🏗️ 4 parties intégrées\n\n"
             "📐 27 exercices implémentés"
         )
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Parties", "4", "POO → MLOps")
-    m2.metric("Tests", "96/96", "100% passés")
+    m2.metric("Tests", "253", "pytest --collect-only")
     m3.metric("Modules", "15+", "src/ organisé")
     m4.metric("Patterns", "8", "Design patterns")
     st.markdown("---")
@@ -447,8 +458,8 @@ leur stratégie de service.
                 "Pandas, Dask, sklearn",
                 "MLflow, FastAPI",
             ],
-            "Tests": [25, 28, 96, "—"],
-            "Statut": ["✅ Complet", "✅ Complet", "✅ Complet", "🔄 En cours"],
+            "Tests": [79, 51, 96, 27],
+            "Statut": ["✅ Complet", "✅ Complet", "✅ Complet", "✅ Livré en local"],
         }
     )
     st.table(recap)
@@ -1819,17 +1830,11 @@ def page_partie3() -> None:
 
 def page_resultats() -> None:
     st.title("📊 Résultats & Métriques Globales")
-    st.subheader("🧪 Suite de Tests — 96/96")
-    n_tests = 96
-    bar = st.progress(0)
-    for i in range(n_tests):
-        bar.progress((i + 1) / n_tests)
-        if i % 40 == 0:
-            time.sleep(0.001)
-    st.success("✅ 96/96 tests passés — 100% de réussite")
+    st.subheader("🧪 Suite de tests — 253 collectés")
+    st.success("253 tests collectés le 10 octobre 2026.")
     st.caption(
-        "Sur ce dépôt : **226** tests pytest exécutés avec succès (voir tableau ci-dessous). "
-        "Le chiffre **96/96** correspond au barème et à la communication officielle du TP."
+        "Commande : `pytest tests/ --collect-only -q`, Python 3.10.11. "
+        "Répartition : partie 1 = 79, partie 2 = 51, partie 3 = 96, partie 4 = 27."
     )
 
     mod_tests = pd.DataFrame(
@@ -1846,43 +1851,49 @@ def page_resultats() -> None:
                 "test_parallel.py",
                 "test_vectorize.py",
                 "test_features.py",
+                "test_models.py",
+                "test_api.py",
                 "TOTAL",
             ],
-            "Tests": [6, 16, 7, 9, 9, 8, 13, 11, 25, 26, 96, 226],
-            "Statut": ["✅"] * 11 + ["✅ 100%"],
+            "Tests": [6, 16, 7, 9, 9, 8, 13, 11, 25, 26, 96, 6, 21, 253],
         }
     )
     st.table(mod_tests)
 
-    st.subheader("⚡ Benchmarks de Performance")
-    a, b, c = st.columns(3)
-    with a:
-        st.metric("Speedup Vectorisation", "×100+", "NumPy vs iterrows")
-        st.metric("Speedup Haversine", "×200+", "Numba vs Python pur")
-    with b:
-        st.metric("Speedup Asyncio", "×4", "Async vs Sync download")
-        st.metric("Gain Mémoire Dtypes", "≥60%", "int8/float32 optimisés")
-    with c:
-        st.metric("Design Patterns", "8", "Partie 1 implémentés")
-        st.metric("Features créées", "30+", "Partie 3 engineered")
-
-    categories = ["POO & Patterns", "Optimisation", "Pandas Avancé", "Tests Unitaires", "Architecture"]
-    values = [9, 6, 8, 10, 9]
-    fig = go.Figure(
-        go.Scatterpolar(
-            r=values + [values[0]],
-            theta=categories + [categories[0]],
-            fill="toself",
-            name="TP",
-            line_color="#4A4A8A",
+    st.subheader("⚡ Benchmarks mesurés")
+    bench = _read_report("benchmarks.json")
+    if bench is None:
+        st.info("Aucun fichier reports/benchmarks.json. Lancez `python scripts/measure_benchmarks.py`.")
+    else:
+        vect = bench.get("vectorization") or {}
+        hav = bench.get("haversine") or {}
+        mem = bench.get("dtypes_january_head") or bench.get("dtypes_synthetic") or {}
+        a, b, c = st.columns(3)
+        with a:
+            if vect:
+                a.metric(
+                    "Vectorisation",
+                    f"×{vect['speedup']:.1f}",
+                    f"{vect['n_rows']} lignes synthétiques",
+                )
+        with b:
+            if hav.get("speedup_numba") is not None:
+                b.metric(
+                    "Haversine Numba",
+                    f"×{hav['speedup_numba']:.0f}",
+                    f"{hav['n_points']} paires, Python extrapolé",
+                )
+        with c:
+            if mem:
+                c.metric(
+                    "Gain dtypes",
+                    f"{100 * mem['gain_ratio']:.1f} %",
+                    f"{mem['n_rows']} lignes",
+                )
+        st.caption(
+            f"Mesure du {bench.get('measured_at', '')}. "
+            f"Commande : `{bench.get('command', '')}`."
         )
-    )
-    fig.update_layout(
-        title="Compétences Démontrées",
-        polar=dict(radialaxis=dict(visible=True, range=[0, 10])),
-    )
-    _plotly_theme(fig)
-    st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("🏗️ Architecture du Projet")
     st.code(
@@ -1902,15 +1913,106 @@ def page_resultats() -> None:
         language="text",
     )
 
-    st.subheader("🔄 Ce qui reste à faire — Partie 4")
-    st.info(
-        "La Partie 4 (MLOps & API) sera complétée prochainement :"
+    st.subheader("Partie 4")
+    st.caption(
+        "Scores, importance et formulaire de prédiction : page « Partie 4 — MLOps & API »."
     )
-    st.checkbox("Ex 4.1 — Tracking MLflow (5 runs LightGBM)", value=False, disabled=True)
-    st.checkbox("Ex 4.2 — Versioning DVC + Model Registry", value=False, disabled=True)
-    st.checkbox("Ex 4.3 — API REST FastAPI (/predict, /batch, /metrics)", value=False, disabled=True)
-    st.checkbox("Ex 4.4 — Validation Pydantic v2", value=False, disabled=True)
-    st.checkbox("Ex 4.5 — Docker multi-stage + docker-compose", value=False, disabled=True)
+
+
+@st.cache_resource
+def _cached_prediction_service():
+    """Charge les artefacts de reports/ une seule fois, sans le registre MLflow."""
+    os.environ["TIP_MODEL_DIR"] = str(ROOT / "reports")
+    from src.api.service import load_service
+
+    return load_service()
+
+
+def page_partie4() -> None:
+    """Scores du dernier entraînement, importance et prédiction locale."""
+    st.title("Partie 4 — MLOps et API")
+    metrics = _read_report("metrics.json")
+    registry = _read_report("registry.json")
+    if metrics is None:
+        st.info("reports/metrics.json est absent.")
+    else:
+        st.caption(
+            f"Entraînement du {metrics.get('date')} sur {metrics.get('n_rows_loaded')} lignes, "
+            f"fenêtre {metrics.get('period_min')} → {metrics.get('period_max')}. "
+            "Commande : `python -m src.models.train --mode full --n_rows 100000`."
+        )
+        rows = []
+        for model in metrics.get("models", []):
+            rows.append(
+                {
+                    "modèle": model.get("name"),
+                    "RMSE": model.get("rmse"),
+                    "MAE": model.get("mae"),
+                    "R²": model.get("r2"),
+                    "RMSE carte": model.get("rmse_card"),
+                }
+            )
+        st.dataframe(pd.DataFrame(rows), use_container_width=True)
+        interval = metrics.get("interval") or {}
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Couverture validation", f"{interval.get('coverage_val', 0):.3f}")
+        c2.metric("Couverture carte", f"{interval.get('coverage_val_card', 0):.3f}")
+        c3.metric("Largeur moyenne", f"{interval.get('mean_width', 0):.3f}")
+    if registry:
+        st.caption(
+            f"Registre : {registry.get('model_name')} version {registry.get('version')} "
+            f"({registry.get('stage')}), run {registry.get('run_name')}, "
+            f"RMSE {registry.get('rmse_val')}."
+        )
+    image = ROOT / "reports" / "feature_importance.png"
+    if image.is_file():
+        st.image(str(image), caption="Importance des variables (gain LightGBM)")
+
+    st.subheader("Prédire une course")
+    predict_form = st.form("predict_form")
+    passenger_count = predict_form.number_input("Passagers", min_value=1, max_value=8, value=1)
+    trip_distance = predict_form.number_input(
+        "Distance (miles)", min_value=0.01, max_value=100.0, value=2.5
+    )
+    fare_amount = predict_form.number_input("Tarif", min_value=0.01, max_value=200.0, value=12.5)
+    pu_location_id = predict_form.number_input("Zone départ", min_value=1, max_value=265, value=161)
+    do_location_id = predict_form.number_input("Zone arrivée", min_value=1, max_value=265, value=236)
+    payment_type = predict_form.selectbox(
+        "Paiement",
+        [1, 2, 3, 4],
+        format_func=lambda v: {1: "carte", 2: "espèces", 3: "sans frais", 4: "litige"}[v],
+    )
+    submitted = predict_form.form_submit_button("Prédire")
+    if submitted:
+        from datetime import datetime
+
+        from src.api.schemas import TripPredictionRequest
+        from src.api.service import TripRejected
+
+        service = _cached_prediction_service()
+        if service is None:
+            st.error("Modèle indisponible dans reports/.")
+        else:
+            request = TripPredictionRequest(
+                passenger_count=int(passenger_count),
+                trip_distance=float(trip_distance),
+                pickup_datetime=datetime(2023, 1, 15, 8, 30),
+                dropoff_datetime=datetime(2023, 1, 15, 8, 48),
+                pu_location_id=int(pu_location_id),
+                do_location_id=int(do_location_id),
+                payment_type=int(payment_type),
+                fare_amount=float(fare_amount),
+            )
+            try:
+                response = service.predict_one(request)
+            except TripRejected as exc:
+                st.warning(str(exc))
+            else:
+                st.success(
+                    f"tip_pct = {response.tip_pct_predicted:.4f}  "
+                    f"intervalle {response.confidence_interval}  "
+                    f"version {response.model_version}"
+                )
 
 
 def main() -> None:
@@ -1932,6 +2034,8 @@ def main() -> None:
         page_partie2()
     elif page.startswith("🔬"):
         page_partie3()
+    elif page.startswith("🚀"):
+        page_partie4()
     else:
         page_resultats()
 

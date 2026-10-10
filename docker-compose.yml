@@ -1,27 +1,60 @@
-version: "3.9"
 services:
   api:
     build: .
     ports:
       - "8000:8000"
-    depends_on:
-      - mlflow
     environment:
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).read()",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   mlflow:
-    image: python:3.11-slim
-    command: >
-      bash -c "pip install mlflow psycopg2-binary &&
-               mlflow server --host 0.0.0.0 --port 5000
-               --backend-store-uri postgresql://mlflow:mlflow@postgres/mlflow
-               --default-artifact-root /mlruns"
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.mlflow
+    command:
+      - mlflow
+      - server
+      - --host
+      - 0.0.0.0
+      - --port
+      - "5000"
+      - --backend-store-uri
+      - postgresql://mlflow:mlflow@postgres:5432/mlflow
+      - --default-artifact-root
+      - /mlruns
     ports:
       - "5000:5000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - mlruns:/mlruns
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health', timeout=3).read()",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
 
   postgres:
     image: postgres:15
@@ -31,15 +64,38 @@ services:
       POSTGRES_DB: mlflow
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mlflow -d mlflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      api:
+        condition: service_healthy
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.4.0
     ports:
       - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
-      - grafana_data:/var/lib/grafana
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
 
 volumes:
   mlruns:
   pgdata:
-  grafana_data:

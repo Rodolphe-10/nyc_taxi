@@ -1,0 +1,187 @@
+{
+  "date": "2026-10-09T13:14:36Z",
+  "n_rows_loaded": 100000,
+  "n_train": 72735,
+  "n_val": 18751,
+  "period_min": "2023-01-01 00:00:00",
+  "period_max": "2023-01-02 13:35:06",
+  "split": "temporal",
+  "use_real_data": true,
+  "features": [
+    "pickup_hour",
+    "pickup_weekday",
+    "pickup_month",
+    "pickup_quarter",
+    "is_weekend",
+    "is_rush_hour",
+    "is_late_night",
+    "pickup_hour_sin",
+    "pickup_hour_cos",
+    "pickup_weekday_sin",
+    "pickup_weekday_cos",
+    "PULocationID_target_enc",
+    "DOLocationID_target_enc",
+    "trip_distance",
+    "fare_amount",
+    "passenger_count",
+    "payment_type"
+  ],
+  "payment_type_kept": true,
+  "interval_coverage": 0.8586742040424511,
+  "interval": {
+    "method": "lightgbm_quantile",
+    "alphas": [
+      0.1,
+      0.9
+    ],
+    "coverage_val": 0.8586742040424511,
+    "coverage_val_card": 0.8077567981337027,
+    "mean_width": 0.18119511177692138
+  },
+  "models": [
+    {
+      "name": "baseline_mean",
+      "rmse": 0.1431305536800729,
+      "mae": 0.1237878500832998,
+      "r2": -0.001739529692891928,
+      "rmse_card": 0.12516796744853492,
+      "mae_card": 0.1019279443283007,
+      "r2_card": -0.2873454975416925
+    },
+    {
+      "name": "baseline_linear",
+      "rmse": 0.09763890889481097,
+      "mae": 0.06952510328940628,
+      "r2": 0.5338389917596206,
+      "rmse_card": 0.1059645345586935,
+      "mae_card": 0.07737155499037736,
+      "r2_card": 0.07736529156996319
+    },
+    {
+      "name": "grid_001",
+      "rmse": 0.08568922212007421,
+      "mae": 0.05202864424093334,
+      "r2": 0.6409602689086213,
+      "rmse_card": 0.10017180363294716,
+      "mae_card": 0.07052705384968722,
+      "r2_card": 0.17548282711065855,
+      "params": {
+        "objective": "regression",
+        "metric": "rmse",
+        "verbosity": -1,
+        "boosting_type": "gbdt",
+        "learning_rate": 0.05,
+        "n_estimators": 500,
+        "max_depth": 4,
+        "num_leaves": 15,
+        "subsample": 1.0,
+        "colsample_bytree": 0.9
+      }
+    },
+    {
+      "name": "grid_005",
+      "rmse": 0.08571327046792593,
+      "mae": 0.051599287012552994,
+      "r2": 0.640758714413777,
+      "rmse_card": 0.10021171591462129,
+      "mae_card": 0.07021853239808949,
+      "r2_card": 0.17482565779890846,
+      "params": {
+        "objective": "regression",
+        "metric": "rmse",
+        "verbosity": -1,
+        "boosting_type": "gbdt",
+        "learning_rate": 0.02,
+        "n_estimators": 500,
+        "max_depth": 5,
+        "num_leaves": 31,
+        "subsample": 0.65,
+        "colsample_bytree": 1.0
+      }
+    },
+    {
+      "name": "grid_004",
+      "rmse": 0.08577603033816487,
+      "mae": 0.05253687517695778,
+      "r2": 0.6402324437326379,
+      "rmse_card": 0.10023649716957982,
+      "mae_card": 0.07049370513157649,
+      "r2_card": 0.17441749426311426,
+      "params": {
+        "objective": "regression",
+        "metric": "rmse",
+        "verbosity": -1,
+        "boosting_type": "gbdt",
+        "learning_rate": 0.1,
+        "n_estimators": 400,
+        "max_depth": 4,
+        "num_leaves": 15,
+        "subsample": 0.85,
+        "colsample_bytree": 0.75
+      }
+    },
+    {
+      "name": "grid_003",
+      "rmse": 0.08581230945932541,
+      "mae": 0.05218032986579426,
+      "r2": 0.6399280507476566,
+      "rmse_card": 0.10031444630603384,
+      "mae_card": 0.07024852900586169,
+      "r2_card": 0.17313296282972823,
+      "params": {
+        "objective": "regression",
+        "metric": "rmse",
+        "verbosity": -1,
+        "boosting_type": "gbdt",
+        "learning_rate": 0.01,
+        "n_estimators": 650,
+        "max_depth": 6,
+        "num_leaves": 63,
+        "subsample": 0.85,
+        "colsample_bytree": 1.0
+      }
+    },
+    {
+      "name": "grid_002",
+      "rmse": 0.08627194310909671,
+      "mae": 0.0550661580144709,
+      "r2": 0.6360604373589824,
+      "rmse_card": 0.10064793607749961,
+      "mae_card": 0.07130436378371728,
+      "r2_card": 0.1676260778298584,
+      "params": {
+        "objective": "regression",
+        "metric": "rmse",
+        "verbosity": -1,
+        "boosting_type": "gbdt",
+        "learning_rate": 0.12,
+        "n_estimators": 650,
+        "max_depth": 9,
+        "num_leaves": 127,
+        "subsample": 0.9,
+        "colsample_bytree": 0.9
+      }
+    },
+    {
+      "name": "embedding_lightgbm",
+      "rmse": 0.08574584053077307,
+      "mae": 0.05344861417283241,
+      "r2": 0.640485647379578,
+      "rmse_card": 0.10016777893280827,
+      "mae_card": 0.07132833415877969,
+      "r2_card": 0.17554908063901498,
+      "params": {
+        "objective": "regression",
+        "metric": "rmse",
+        "verbosity": -1,
+        "boosting_type": "gbdt",
+        "learning_rate": 0.05,
+        "n_estimators": 500,
+        "max_depth": 4,
+        "num_leaves": 15,
+        "subsample": 1.0,
+        "colsample_bytree": 0.9
+      }
+    }
+  ]
+}

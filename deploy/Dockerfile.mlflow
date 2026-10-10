@@ -1,0 +1,4 @@
+FROM ghcr.io/mlflow/mlflow:v2.22.1
+USER root
+RUN pip install --timeout 300 --retries 15 "psycopg2-binary>=2.9"
+EXPOSE 5000

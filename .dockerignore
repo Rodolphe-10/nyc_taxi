@@ -1,0 +1,14 @@
+.git
+.github
+.dvc
+mlruns
+data
+tests
+notebooks
+htmlcov
+.pytest_cache
+docs
+**/__pycache__
+**/*.pyc
+**/*.parquet
+*.md
