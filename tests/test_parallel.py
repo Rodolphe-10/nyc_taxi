@@ -156,7 +156,9 @@ def test_processes_faster_than_threading_cpu_bound():
     Sur Linux/Mac (fork), ProcessPool serait significativement plus rapide.
     C'est un point important à documenter dans le rapport.
     """
-    result = benchmark_gil_cpu_bound(n_workers=2, size=50_000)
+    # 50 000 itérations durent ~30 ms : le coût de dispatch des processus
+    # dépasse alors le gain, y compris sous Linux (fork) sur le runner GitHub.
+    result = benchmark_gil_cpu_bound(n_workers=2, size=2_000_000)
 
     # Vérifie la structure du résultat
     assert "speedup_processes" in result

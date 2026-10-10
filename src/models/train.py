@@ -23,6 +23,10 @@ import matplotlib.pyplot as plt
 import lightgbm as lgb
 import mlflow
 import mlflow.lightgbm
+
+# Les versions récentes de MLflow refusent le dépôt fichier tant que cet
+# opt-in n'est pas posé. Le suivi local reste dans mlruns/.
+os.environ.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")
 import numpy as np
 import optuna
 import pandas as pd
